@@ -1,0 +1,686 @@
+FINISH 
+/CLEAR,START
+
+/PREP7 
+! No polynomial elements
+/PMETH,OFF,1
+
+! Set electric preferences
+KEYW,PR_ELMAG,1
+KEYW,MAGELC,1
+
+!!!!!!!!!!!!!!!Defining variables all in mm!!!!!!!!!!!!!!!!!!!
+
+! geometry
+
+pitch=0.5
+amplification=0.150
+kaptonheight=0.025
+
+floatwidth=0.3
+xwidth=0.4
+ywidth=0.4
+
+floatheight=0.035
+xheight=0.035
+yheight=0.035
+
+order=1                          ! 0=fxy , 1=fyx
+
+! number of unitcells
+rowsx=3                          ! only odd numbers
+rowsy=3                          ! only odd numbers
+
+!voltages
+meshvolt=0
+floatvolt=500
+xvolt=0
+yvolt=0
+
+!!!!!!!!!!!!!!!Defining variables all in mm END!!!!!!!!!!!!!!!!!!!
+
+midx=(rowsx-1)/2
+midy=(rowsy-1)/2
+
+*IF,order,EQ,0,THEN
+
+ylow=0
+yhigh=yheight
+
+xlow=kaptonheight+yheight
+xhigh=xlow+xheight
+
+*ELSE
+
+xlow=0
+xhigh=xheight
+
+ylow=kaptonheight+xhigh
+yhigh=ylow+yheight
+
+*ENDIF
+
+floatlow=xheight+kaptonheight+yheight+kaptonheight
+floathigh=floatlow+floatheight
+meshheight=floathigh+amplification
+
+!!!!!!!!!!!!!!!!!!!!geometry!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! ylayer
+BLOCK,-pitch/2,pitch/2,-ywidth/2,ywidth/2,ylow,yhigh
+BLOCK,-pitch/2,pitch/2,-pitch/2,-ywidth/2,ylow,yhigh
+BLOCK,-pitch/2,pitch/2,ywidth/2,pitch/2,ylow,yhigh
+
+! kaptonlayer
+*IF,order,EQ,0,THEN
+cheight=yheight
+*ELSE
+cheight=xheight
+*ENDIF
+BLOCK,-pitch/2,pitch/2,-pitch/2,pitch/2,cheight,cheight+kaptonheight
+
+! xlayer
+BLOCK,-xwidth/2,xwidth/2,-pitch/2,pitch/2,xlow,xhigh
+BLOCK,-pitch/2,-xwidth/2,-pitch/2,pitch/2,xlow,xhigh
+BLOCK,xwidth/2,pitch/2,-pitch/2,pitch/2,xlow,xhigh
+
+! kaptonlayer
+cheight=xheight+kaptonheight+yheight
+BLOCK,-pitch/2,pitch/2,-pitch/2,pitch/2,cheight,cheight+kaptonheight
+
+! floatlayer
+BLOCK,-floatwidth/2,floatwidth/2,-pitch/2,pitch/2,floatlow,floathigh
+BLOCK,-pitch/2,-floatwidth/2,-pitch/2,pitch/2,floatlow,floathigh
+BLOCK,floatwidth/2,pitch/2,-pitch/2,pitch/2,floatlow,floathigh
+
+! gaslayer
+BLOCK,-pitch/2,pitch/2,-pitch/2,pitch/2,floathigh,meshheight
+
+!!!!!!!!!!!!!!!!!!!!geometry END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!generate pattern of unite cells and glue them!!!!!!!!!!!!!!!!!!
+
+! generate additional unitcells
+
+VGEN,rowsx,ALL,,,pitch
+ALLSEL,ALL
+VGEN,rowsy,ALL,,,,pitch
+ALLSEL,ALL
+
+! move central unitcell to zero
+
+VGEN,1,ALL,,,-pitch*midx,-pitch*midy,,,,1
+ALLSEL,ALL
+
+VGLUE,ALL
+
+!!!!!!!!!!!!!!!!!!!!!!generate pattern of unite cells and glue them END!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!materials!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!Define elementtype
+!ET,1,SOLID122
+ET,1,SOLID123
+
+!Define materialpropertys
+
+!Material 1 : copper
+!MP,PERX,1,10 
+MP,PERX,1,1E10 
+!MP,RSVX,1,17.21E-9 !wiki 0.0 
+!MP,RSVX,1,1E6 !wiki 0.0
+
+!Material 2 : kapton (FR4)
+MP,PERX,2,4.0 !3.4 quick-ohm.de
+!MP,RSVX,2,1E20 !goodfellow.com
+
+!Material 3 : gas (Neon CO4)
+MP,PERX,3,1.0 !−0.0000072 !wiki
+!MP,RSVX,3,1E20 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!materials END!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!associate volumes with elements and materials!!!!!!!!!!!!!!!!!!
+
+*DO,count,0,rowsx-1,1
+
+offset=-midx*pitch+count*pitch
+
+VSEL,S,LOC,Z,xlow,xhigh
+VSEL,R,LOC,X,-xwidth/2+offset,xwidth/2+offset
+VATT,1,,1
+/COLOR,VOLU,ORAN,ALL
+
+ALLSEL,ALL
+
+*IF,order,EQ,0,THEN
+
+VSEL,S,LOC,Z,xlow,xhigh
+VSEL,R,LOC,X,-pitch/2+offset,-xwidth/2+offset
+VATT,2,,1
+/COLOR,VOLU,YELL,ALL
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,xlow,xhigh
+VSEL,R,LOC,X,xwidth/2+offset,pitch/2+offset
+VATT,2,,1
+/COLOR,VOLU,YELL,ALL
+
+ALLSEL,ALL
+
+*ELSE
+
+VSEL,S,LOC,Z,xlow,xhigh
+VSEL,R,LOC,X,-pitch/2+offset,-xwidth/2+offset
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,xlow,xhigh
+VSEL,R,LOC,X,xwidth/2+offset,pitch/2+offset
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+*ENDIF
+
+VSEL,S,LOC,Z,floatlow,floathigh
+VSEL,R,LOC,X,-floatwidth/2+offset,floatwidth/2+offset
+VATT,1,,1
+/COLOR,VOLU,ORAN,ALL
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,floatlow,floathigh
+VSEL,R,LOC,X,-pitch/2+offset,-floatwidth/2+offset
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,floatlow,floathigh
+VSEL,R,LOC,X,floatwidth/2+offset,pitch/2+offset
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+ALLSEL,ALL
+
+*ENDDO
+
+*DO,count,0,rowsy-1,1
+
+offset=-midy*pitch+count*pitch
+
+VSEL,S,LOC,Z,ylow,yhigh
+VSEL,R,LOC,Y,-ywidth/2+offset,ywidth/2+offset
+VATT,1,,1
+/COLOR,VOLU,ORAN,ALL
+
+*IF,order,EQ,0,THEN
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,ylow,yhigh
+VSEL,R,LOC,Y,-pitch/2+offset,-ywidth/2+offset
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,ylow,yhigh
+VSEL,R,LOC,Y,ywidth/2+offset,pitch/2+offset
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+*ELSE
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,ylow,yhigh
+VSEL,R,LOC,Y,-pitch/2+offset,-ywidth/2+offset
+VATT,2,,1
+/COLOR,VOLU,YELL,ALL
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,ylow,yhigh
+VSEL,R,LOC,Y,ywidth/2+offset,pitch/2+offset
+VATT,2,,1
+/COLOR,VOLU,YELL,ALL
+
+ALLSEL,ALL
+
+*ENDIF
+
+*ENDDO
+
+! multiple volumes ********************
+
+! kapton ***********
+
+*IF,order,EQ,0,THEN
+cheight=yheight
+*ELSE
+cheight=xheight
+*ENDIF
+VSEL,S,LOC,Z,cheight,cheight+kaptonheight 
+VATT,2,,1
+/COLOR,VOLU,YELL,ALL
+
+ALLSEL,ALL
+
+cheight=xheight+kaptonheight+yheight
+VSEL,S,LOC,Z,cheight,cheight+kaptonheight
+VATT,2,,1
+/COLOR,VOLU,YELL,ALL
+
+ALLSEL,ALL
+
+! gas *********** 
+
+VSEL,S,LOC,Z,floathigh,meshheight
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+ALLSEL,ALL
+
+!!!!!!!!!!!!!!!!!!!!!!associate volumes with elements and materials END!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!add volumes!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+VSEL,,MAT,,2
+VADD,ALL
+
+ALLSEL,ALL
+
+VSEL,,MAT,,3
+VADD,ALL
+
+ALLSEL,ALL
+
+VGLUE,ALL
+
+ALLSEL,ALL
+
+!!!!!!!!!!!!!!!!!!!!!!add volumes END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!associate volumes with elements and materials!!!!!!!!!!!!!!!!!!
+
+*IF,order,EQ,1,THEN
+VSEL,,LOC,Z,xhigh,floatlow
+*ELSE
+VSEL,,LOC,Z,yhigh,floatlow
+*ENDIF
+VSEL,U,MAT,,1
+VATT,2,,1
+/COLOR,VOLU,YELL,ALL
+
+ALLSEL,ALL
+
+VSEL,,LOC,Z,floatlow,meshheight
+*IF,resistive,EQ,1,THEN
+VSEL,U,MAT,,4
+*ELSE
+VSEL,U,MAT,,1
+*ENDIF
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+ALLSEL,ALL
+
+*IF,order,EQ,1,THEN
+VSEL,,LOC,Z,0,xhigh
+*ELSE
+VSEL,,LOC,Z,0,yhigh
+*ENDIF
+VSEL,U,MAT,,1
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+ALLSEL,ALL
+
+!!!!!!!!!!!!!!!!!!!!!!associate volumes with elements and materials END!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!meshing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+VSEL,ALL
+VSEL,U,MAT,,1
+
+VPLOT     
+SMRT,2  
+!MSHAPE,0,3D 
+!MSHKEY,0 
+VMESH,ALL 
+FINISH  
+/SOL
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!meshing END!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!constraints!!!!!!!!!!!!!!!!!!!!!!!
+
+!voltages--------------------------------------------------------------
+
+! set nodes of strips to same voltages **************
+
+*DO,count,0,rowsx-1,1
+
+offset=-midx*pitch+count*pitch
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,floatlow,floathigh
+VSEL,R,LOC,X,-floatwidth/2+offset,floatwidth/2+offset
+ASLV
+DA,ALL,VOLT,floatvolt
+
+ALLSEL,ALL
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,xlow,xhigh
+VSEL,R,LOC,X,-xwidth/2+offset,xwidth/2+offset
+ASLV
+DA,ALL,VOLT,xvolt
+
+ALLSEL,ALL
+
+*ENDDO
+
+*DO,count,0,rowsy-1,1
+
+offset=-midy*pitch+count*pitch
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,ylow,yhigh
+VSEL,R,LOC,Y,-ywidth/2+offset,ywidth/2+offset
+ASLV
+DA,ALL,VOLT,yvolt
+
+ALLSEL,ALL
+
+*ENDDO
+
+! set top area of gas volume to zero volt ******************
+
+ASEL,S,LOC,Z,meshheight
+DA,ALL,VOLT,meshvolt
+
+ALLSEL,ALL
+
+!!!!!!!!!!!!!!!!!!!constraints END!!!!!!!!!!!!!!!!!
+
+! Solve *********************
+/SOLU
+SOLVE   
+FINISH
+
+/POST1 
+
+! Plot voltage
+! /EFACET,1  
+! PLNSOL,VOLT,,0
+
+! default field and node output
+
+/OUTPUT, PRNSOL, lis, weightingfields
+PRNSOL
+/OUTPUT
+
+/OUTPUT, NLIST, lis, weightingfields
+NLIST,,,,COORD
+/OUTPUT
+ 
+/OUTPUT, ELIST, lis, weightingfields
+ELIST
+/OUTPUT
+ 
+/OUTPUT, MPLIST, lis, weightingfields
+MPLIST
+/OUTPUT
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!weightingfields
+
+*DO,zaehler,-1,1,1 !!!!!!!!!!!!!!!!!!!!!!!!!!!! start neighbour loop
+
+place=zaehler*pitch
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! x fields
+
+/SOLU
+LSCLEAR,ALL
+
+*DO,count,0,rowsx-1,1
+
+offset=-midx*pitch+count*pitch
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,floatlow,floathigh
+VSEL,R,LOC,X,-floatwidth/2+offset,floatwidth/2+offset
+ASLV
+DA,ALL,VOLT,0
+
+ALLSEL,ALL
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,xlow,xhigh
+VSEL,R,LOC,X,-xwidth/2+offset,xwidth/2+offset
+ASLV
+DA,ALL,VOLT,0
+
+ALLSEL,ALL
+
+*ENDDO
+
+*DO,count,0,rowsy-1,1
+
+offset=-midy*pitch+count*pitch
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,ylow,yhigh
+VSEL,R,LOC,Y,-ywidth/2+offset,ywidth/2+offset
+ASLV
+DA,ALL,VOLT,0
+
+ALLSEL,ALL
+
+*ENDDO
+
+! set top area of gas volume to zero volt ******************
+
+ASEL,S,LOC,Z,meshheight
+DA,ALL,VOLT,0
+
+ALLSEL,ALL
+
+! set specific stript to one volt ******************
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,xlow,xhigh
+VSEL,R,LOC,X,-xwidth/2+place,xwidth/2+place
+ASLV
+DA,ALL,VOLT,1
+
+ALLSEL,ALL
+
+! Solve the field
+/SOLU
+SOLVE
+FINISH
+ 
+! Write the weighting field to file "weightx<position>.lis"
+/POST1
+
+*IF,zaehler,EQ,-1,THEN
+/OUTPUT, weightxl, lis, weightingfields
+PRNSOL
+/OUTPUT
+*ELSEIF,zaehler,EQ,1,THEN
+/OUTPUT, weightxh, lis, weightingfields
+PRNSOL
+/OUTPUT
+*ELSEIF,zaehler,EQ,0,THEN
+/OUTPUT, weightxc, lis, weightingfields
+PRNSOL
+/OUTPUT
+*ENDIF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! y fields
+
+/SOLU
+LSCLEAR,ALL
+
+*DO,count,0,rowsx-1,1
+
+offset=-midx*pitch+count*pitch
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,floatlow,floathigh
+VSEL,R,LOC,X,-floatwidth/2+offset,floatwidth/2+offset
+ASLV
+DA,ALL,VOLT,0
+
+ALLSEL,ALL
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,xlow,xhigh
+VSEL,R,LOC,X,-xwidth/2+offset,xwidth/2+offset
+ASLV
+DA,ALL,VOLT,0
+
+ALLSEL,ALL
+
+*ENDDO
+
+*DO,count,0,rowsy-1,1
+
+offset=-midy*pitch+count*pitch
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,ylow,yhigh
+VSEL,R,LOC,Y,-ywidth/2+offset,ywidth/2+offset
+ASLV
+DA,ALL,VOLT,0
+
+ALLSEL,ALL
+
+*ENDDO
+
+! set top area of gas volume to zero volt ******************
+
+ASEL,S,LOC,Z,meshheight
+DA,ALL,VOLT,0
+
+ALLSEL,ALL
+
+! set specific stript to one volt ******************
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,ylow,yhigh
+VSEL,R,LOC,Y,-ywidth/2+place,ywidth/2+place
+ASLV
+DA,ALL,VOLT,1
+
+ALLSEL,ALL
+
+! Solve the field
+/SOLU
+SOLVE
+FINISH
+ 
+! Write the weighting field to file "weighty<position>.lis"
+/POST1
+
+*IF,zaehler,EQ,-1,THEN
+/OUTPUT, weightyl, lis, weightingfields
+PRNSOL
+/OUTPUT
+*ELSEIF,zaehler,EQ,1,THEN
+/OUTPUT, weightyh, lis, weightingfields
+PRNSOL
+/OUTPUT
+*ELSEIF,zaehler,EQ,0,THEN
+/OUTPUT, weightyc, lis, weightingfields
+PRNSOL
+/OUTPUT
+*ENDIF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! float fields
+
+/SOLU
+LSCLEAR,ALL
+
+*DO,count,0,rowsx-1,1
+
+offset=-midx*pitch+count*pitch
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,floatlow,floathigh
+VSEL,R,LOC,X,-floatwidth/2+offset,floatwidth/2+offset
+ASLV
+DA,ALL,VOLT,0
+
+ALLSEL,ALL
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,xlow,xhigh
+VSEL,R,LOC,X,-xwidth/2+offset,xwidth/2+offset
+ASLV
+DA,ALL,VOLT,0
+
+ALLSEL,ALL
+
+*ENDDO
+
+*DO,count,0,rowsy-1,1
+
+offset=-midy*pitch+count*pitch
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,ylow,yhigh
+VSEL,R,LOC,Y,-ywidth/2+offset,ywidth/2+offset
+ASLV
+DA,ALL,VOLT,0
+
+ALLSEL,ALL
+
+*ENDDO
+
+! set top area of gas volume to zero volt ******************
+
+ASEL,S,LOC,Z,meshheight
+DA,ALL,VOLT,0
+
+ALLSEL,ALL
+
+! set specific stript to one volt ******************
+
+VSEL,S,MAT,,1
+VSEL,R,LOC,Z,floatlow,floathigh
+VSEL,R,LOC,X,-floatwidth/2+place,floatwidth/2+place
+ASLV
+DA,ALL,VOLT,1
+
+ALLSEL,ALL
+
+! Solve the field
+/SOLU
+SOLVE
+FINISH
+ 
+! Write the weighting field to file "weightx<position>.lis"
+/POST1
+
+*IF,zaehler,EQ,-1,THEN
+/OUTPUT, weightfl, lis, weightingfields
+PRNSOL
+/OUTPUT
+*ELSEIF,zaehler,EQ,1,THEN
+/OUTPUT, weightfh, lis, weightingfields
+PRNSOL
+/OUTPUT
+*ELSEIF,zaehler,EQ,0,THEN
+/OUTPUT, weightfc, lis, weightingfields
+PRNSOL
+/OUTPUT
+*ENDIF
+
+*ENDDO !!!!!!!!!!!!!!!!!!!!!!!!!!!! end neighbour loop

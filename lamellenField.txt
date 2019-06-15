@@ -1,0 +1,252 @@
+FINISH 
+/CLEAR,START
+
+/PREP7 
+! No polynomial elements
+/PMETH,OFF,1
+
+! Set electric preferences
+KEYW,PR_ELMAG,1
+KEYW,MAGELC,1
+
+!!!!!!!!!!!!!!!Defining variables all in m!!!!!!!!!!!!!!!!!!!
+
+Pi=3.1415
+
+! for geometry
+height=5
+width=5
+gap=1.8
+thickness=0.1
+angle=45
+slope=tan(angle*Pi/180)
+!length=slope*height+thickness*2+gap/sin((90-angle)*Pi/180)
+length=slope*height+thickness*3+gap*2
+drift=4
+
+! for voltages
+volttop=75
+voltbot=-75
+voltdiff=-40
+
+voltanode=100
+
+!!!!!!!!!!!!!!!Defining variables all in m END!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!geometry!!!!!!!!!!!!!!!!!!!!!!!!!
+
+BLOCK,-length/2,length/2,-height/2,height/2,-width/2,width/2
+gas=1
+
+KSEL,S,LOC,X,-length/2
+KSEL,R,LOC,Y,height/2
+KSEL,R,LOC,Z,width/2
+*GET,pnnpp,KP,,NUM,MAX
+
+KSEL,S,LOC,X,-length/2
+KSEL,R,LOC,Y,height/2
+KSEL,R,LOC,Z,-width/2
+*GET,pnnpn,KP,,NUM,MAX
+
+KSEL,S,LOC,X,length/2
+KSEL,R,LOC,Y,-height/2
+KSEL,R,LOC,Z,width/2
+*GET,pnpnp,KP,,NUM,MAX
+
+KSEL,S,LOC,X,length/2
+KSEL,R,LOC,Y,-height/2
+KSEL,R,LOC,Z,-width/2
+*GET,pnpnn,KP,,NUM,MAX
+
+LSEL,S,LOC,Y,height/2
+LSEL,R,LOC,Z,width/2
+*GET,lnxpp,LINE,,NUM,MAX
+
+LSEL,S,LOC,Y,-height/2
+LSEL,R,LOC,Z,width/2
+*GET,lnxnp,LINE,,NUM,MAX
+
+LSEL,S,LOC,Y,height/2
+LSEL,R,LOC,Z,-width/2
+*GET,lnxpn,LINE,,NUM,MAX
+
+LSEL,S,LOC,Y,-height/2
+LSEL,R,LOC,Z,-width/2
+*GET,lnxnn,LINE,,NUM,MAX
+
+ALLSEL,ALL
+
+KSEL,ALL
+*GET,npoints,KP,,COUNT
+
+KL,lnxpp,1-thickness/length
+pnxppa=npoints+1
+KL,lnxpn,1-thickness/length
+pnxpna=pnxppa+1
+KL,lnxnp,slope*height/length
+pnxnpc=pnxpna+1
+KL,lnxnn,slope*height/length
+pnxnnc=pnxnpc+1
+KL,lnxnp,(slope*height+thickness)/length
+pnxnpb=pnxnnc+1
+KL,lnxnn,(slope*height+thickness)/length
+pnxnnb=pnxnpb+1
+
+KL,lnxnp,1-thickness/length
+pnxnpa=pnxnnb+1
+KL,lnxnn,1-thickness/length
+pnxnna=pnxnpa+1
+KL,lnxpp,slope*height/length
+pnxppc=pnxnna+1
+KL,lnxpn,slope*height/length
+pnxpnc=pnxppc+1
+KL,lnxpp,(slope*height+thickness)/length
+pnxppb=pnxpnc+1
+KL,lnxpn,(slope*height+thickness)/length
+pnxpnb=pnxppb+1
+
+V,pnxnpc,pnxnpb,pnxnnb,pnxnnc,pnnpp,pnxppa,pnxpna,pnnpn
+kapneg=gas+1
+V,pnxnpa,pnpnp,pnpnn,pnxnna,pnxppb,pnxppc,pnxpnc,pnxpnb
+kappos=kapneg+1
+
+ALLSEL,ALL
+
+VSBV,gas,kapneg,,,KEEP
+VSEL,S,LOC,X,-length/2+(slope*height+thickness),length/2-(slope*height+thickness)
+ALLSEL,ALL
+*GET,gas,VOLU,,NUM,MAX
+
+VSBV,gas,kappos,,,KEEP
+VSEL,S,LOC,X,-length/2+(slope*height+thickness),length/2-(slope*height+thickness)
+ALLSEL,ALL
+*GET,gas,VOLU,,NUM,MAX
+
+BLOCK,-length/2,length/2,-drift-height/2,-height/2,-width/2,width/2
+VSEL,S,LOC,Y,-drift-height/2,-height/2
+*GET,blockindex,VOLU,,NUM,MAX
+
+ALLSEL,ALL
+! 
+! ! VSEL,S,VOLU,,gas
+! ! VSEL,A,VOLU,,kappos
+! ! VSEL,A,VOLU,,kapneg
+! ! VSEL,A,VOLU,,blockindex
+VGLUE,ALL
+! 
+ALLSEL,ALL
+
+! VDELE,1,4,3,1
+
+! !!!!!!!!!!!!!!!!!!!!geometry END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! 
+! !!!!!!!!!!!!!!!!!!!!!!materials!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! 
+! !Define elementtype
+! !ET,1,SOLID122
+! ET,1,SOLID123
+! 
+! !Define materialpropertys
+! 
+! !Material 1 : copper
+! !MP,PERX,1,10 
+! MP,PERX,1,1E10 
+! !MP,RSVX,1,17.21E-9 !wiki 0.0 
+! !MP,RSVX,1,1E6 !wiki 0.0
+! 
+! !Material 2 : kapton (FR4)
+! MP,PERX,2,1E10 !3.4 quick-ohm.de
+! MP,RSVX,2,0 !goodfellow.com
+! 
+! !Material 3 : gas (Neon CO4)
+! MP,PERX,3,1.0 !−0.0000072 !wiki
+! !MP,RSVX,3,1E20 
+! 
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!materials END!!!!!!!!!!!!!!!!!!!!!!!!!
+! 
+! !!!!!!!!!!!!!!!!!!!!!!associate volumes with elements and materials!!!!!!!!!!!!!!!!!!
+! 
+! ALLSEL,ALL
+! VSEL,U,VOLU,,kappos
+! VSEL,U,VOLU,,kapneg
+! ! VSEL,S,VOLU,,gas
+! ! VSEL,A,VOLU,,1,4,3
+! ! VSEL,A,VOLU,,blockindex
+! VATT,3,,1
+! /COLOR,VOLU,BLUE,ALL
+! 
+! ALLSEL,ALL
+! VSEL,S,VOLU,,kappos
+! VSEL,A,VOLU,,kapneg
+! VATT,2,,1
+! /COLOR,VOLU,YELL,ALL
+! ALLSEL,ALL
+! 
+! !!!!!!!!!!!!!!!!!!!!!!associate volumes with elements and materials END!!!!!!!!!!!!!!!!!!
+! 
+! !!!!!!!!!!!!!!!!!!!!meshing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! 
+! VSEL,ALL
+!   
+! !MSHAPE,0,3D 
+! !MSHKEY,0 
+! VMESH,ALL 
+! FINISH  
+! /SOL
+! 
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!meshing END!!!!!!!!!!!!!!!!!!!!!!!
+! 
+! !!!!!!!!!!!!!!!!!!!constraints!!!!!!!!!!!!!!!!!!!!!!!
+! 
+! !voltages--------------------------------------------------------------
+! 
+! ! ASEL,S,LOC,Y,height/2
+! ASEL,S,AREA,,18
+! DA,ALL,VOLT,-volttop
+! 
+! ! ASEL,S,LOC,Y,-height/2
+! ASEL,S,AREA,,13
+! DA,ALL,VOLT,-voltbot
+! 
+! ! ASEL,S,AREA,,12,18,6
+! ! ASEL,A,AREA,,7,13,6
+! ! DA,ALL,VOLT,0
+! 
+! ASEL,S,AREA,,7
+! DA,ALL,VOLT,-voltbot+voltdiff
+! 
+! ASEL,S,AREA,,12
+! DA,ALL,VOLT,-volttop+voltdiff
+! 
+! 
+! ASEL,S,AREA,,24
+! DA,ALL,VOLT,-(voltbot-voltanode)
+! 
+! ALLSEL,ALL
+! 
+! !!!!!!!!!!!!!!!!!!!constraints END!!!!!!!!!!!!!!!!!
+! ! Solve the field
+! /SOLU
+! SOLVE
+! FINISH
+! 
+! ! Display the solution
+! /POST1
+! /EFACET,1
+! PLNSOL, VOLT,, 0
+! /OUTPUT, PRNSOL, lis
+! PRNSOL
+! /OUTPUT
+!  
+! ! Write the mesh to files
+! /OUTPUT, NLIST, lis
+! NLIST,,,,COORD
+! /OUTPUT
+!  
+! /OUTPUT, ELIST, lis
+! ELIST
+! /OUTPUT
+!  
+! /OUTPUT, MPLIST, lis
+! MPLIST
+! /OUTPUT

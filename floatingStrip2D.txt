@@ -1,0 +1,304 @@
+FINISH 
+/CLEAR,START
+
+/PREP7 
+! No polynomial elements
+/PMETH,OFF,1
+
+! Set electric preferences
+KEYW,PR_ELMAG,1
+KEYW,MAGELC,1
+
+!!!!!!!!!!!!!!!Defining variables all in m!!!!!!!!!!!!!!!!!!!
+
+!for geometry
+pitch=0.0005
+floatwidth=0.0003
+floatheight=0.000035
+xwidth=0.00008
+xheight=0.000035
+ywidth=0.0004
+yheight=0.000035
+kaptonheight=0.000025
+striplength=0.064
+gasVol=0.000150
+!gasVol=0.000125
+
+!for more unitcells
+midNum=3
+squareNum=2*midNum+1
+
+!for voltages
+floatVoltage=500
+!floatVoltage=0
+
+!for charges
+electron=-1.6022E-19 !in coulomb
+coulomb=-6.242E18 !in unit charge
+nElectrons=2.*1.8*1E6 !/2
+!nElectrons=1E6/2
+clusterCharge=nElectrons*electron
+!clusterCharge=nElectrons*coulomb
+!clusterCharge=0
+
+!!!!!!!!!!!!!!!Defining variables all in m END!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!geometry!!!!!!!!!!!!!!!!!!!!!!!!!
+
+RECTNG,-pitch/2,pitch/2,0,yheight
+
+RECTNG,-pitch/2,pitch/2,yheight,yheight+kaptonheight
+
+RECTNG,-pitch/2,-xwidth/2,yheight+kaptonheight,yheight+kaptonheight+xheight
+
+RECTNG,xwidth/2,pitch/2,yheight+kaptonheight,yheight+kaptonheight+xheight
+
+RECTNG,-xwidth/2,xwidth/2,yheight+kaptonheight,yheight+kaptonheight+xheight
+
+RECTNG,-pitch/2,pitch/2,yheight+kaptonheight+xheight,yheight+kaptonheight+xheight+kaptonheight
+
+RECTNG,-pitch/2,-floatwidth/2,yheight+kaptonheight+xheight+kaptonheight,yheight+kaptonheight+xheight+kaptonheight+floatheight
+
+RECTNG,floatwidth/2,pitch/2,yheight+kaptonheight+xheight+kaptonheight,yheight+kaptonheight+xheight+kaptonheight+floatheight
+
+RECTNG,-floatwidth/2,floatwidth/2,yheight+kaptonheight+xheight+kaptonheight,yheight+kaptonheight+xheight+kaptonheight+floatheight
+
+RECTNG,-pitch/2,pitch/2,yheight+kaptonheight+xheight+kaptonheight+floatheight,yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol
+
+ALLSEL,ALL
+
+AGLUE,ALL
+
+AGEN,squareNum,ALL,,,pitch
+
+ALLSEL,ALL
+
+AGLUE,ALL
+
+ALLSEL,ALL
+
+!!!!!!!!!!!!!!!!!!!!geometry END!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!materials!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!Define elementtype
+ET,1,PLANE121
+
+!Define materialpropertys
+
+!Material 1 : copper / metal
+!MP,PERX,1,10. 
+MP,PERX,1,1E10 
+MP,RSVX,1,17.21E-9 !wiki 0.0 
+!MP,RSVX,1,1E6 !wiki 0.0
+
+!Material 2 : kapton (FR4)
+MP,PERX,2,4.0 !3.4 quick-ohm.de
+!MP,RSVX,2,1E20 !goodfellow.com
+
+!Material 3 : gas (Neon CO4)
+MP,PERX,3,1.0 !−0.0000072 !wiki
+!MP,RSVX,3,1E20 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!materials END!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!associate areas with materials!!!!!!!!!!!!!!!
+
+ALLSEL,ALL
+
+*DO,count,0,squareNum-1,1
+
+offset=count*pitch
+
+!------------x and float strip
+
+ASEL,S,LOC,Y,yheight+kaptonheight,yheight+kaptonheight+xheight
+ASEL,R,LOC,X,-xwidth/2+offset,xwidth/2+offset
+AATT,1,,1
+/COLOR,AREA,ORAN,ALL
+
+ALLSEL,ALL
+
+ASEL,S,LOC,Y,yheight+kaptonheight+xheight+kaptonheight,yheight+kaptonheight+xheight+kaptonheight+floatheight
+ASEL,R,LOC,X,-floatwidth/2+offset,floatwidth/2+offset
+AATT,1,,1
+/COLOR,AREA,ORAN,ALL
+
+ALLSEL,ALL
+
+!----------kapton height x and gas height float strip
+
+ASEL,S,LOC,Y,yheight+kaptonheight,yheight+kaptonheight+xheight
+ASEL,R,LOC,X,-pitch/2+offset,-xwidth/2+offset
+AATT,2,,1
+/COLOR,AREA,YELL,ALL
+
+ALLSEL,ALL
+
+ASEL,S,LOC,Y,yheight+kaptonheight,yheight+kaptonheight+xheight
+ASEL,R,LOC,X,xwidth/2+offset,pitch/2+offset
+AATT,2,,1
+/COLOR,AREA,YELL,ALL
+
+ALLSEL,ALL
+
+ASEL,S,LOC,Y,yheight+kaptonheight+xheight+kaptonheight,yheight+kaptonheight+xheight+kaptonheight+floatheight
+ASEL,R,LOC,X,-pitch/2+offset,-floatwidth/2+offset
+AATT,3,,1
+/COLOR,AREA,GREE,ALL
+
+ALLSEL,ALL
+
+ASEL,S,LOC,Y,yheight+kaptonheight+xheight+kaptonheight,yheight+kaptonheight+xheight+kaptonheight+floatheight
+ASEL,R,LOC,X,floatwidth/2+offset,pitch/2+offset
+AATT,3,,1
+/COLOR,AREA,GREE,ALL
+
+ALLSEL,ALL
+
+*ENDDO
+
+ASEL,S,LOC,Y,0,yheight
+AATT,1,,1
+/COLOR,AREA,ORAN,ALL
+
+ALLSEL,ALL
+
+ASEL,S,LOC,Y,yheight,yheight+kaptonheight
+AATT,2,,1
+/COLOR,AREA,YELL,ALL
+
+ALLSEL,ALL
+
+ASEL,S,LOC,Y,yheight+kaptonheight+xheight,yheight+kaptonheight+xheight+kaptonheight
+AATT,2,,1
+/COLOR,AREA,YELL,ALL
+
+ALLSEL,ALL
+
+ASEL,S,LOC,Y,yheight+kaptonheight+xheight+kaptonheight+floatheight,yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol
+AATT,3,,1
+/COLOR,AREA,GREE,ALL
+
+ALLSEL,ALL
+
+
+!!!!!!!!!!!!!!!!!!!!!associate areas with materials END!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!meshing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+APLOT     
+SMRT,1  
+AMESH,ALL 
+AREFINE,ALL,,,2
+FINISH  
+/SOL
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!meshing END!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!constraints!!!!!!!!!!!!!!!!!!!!
+
+NSEL,S,LOC,Y,yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol
+D,ALL,VOLT,0
+
+ALLSEL,ALL
+
+NSEL,S,LOC,Y,yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol/100,yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol-gasVol/100
+NSEL,R,LOC,X,-pitch/2+pitch*(midNum+1),pitch/2+pitch*(midNum+1)
+*GET,nNodesGas,NODE,0,COUNT
+F,ALL,CHRG,-clusterCharge/nNodesGas
+
+ALLSEL,ALL
+
+NSEL,S,LOC,Y,yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol/100,yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol-gasVol/100
+NSEL,R,LOC,X,-pitch/2+pitch*midNum,pitch/2+pitch*midNum
+*GET,nNodesGas,NODE,0,COUNT
+F,ALL,CHRG,-clusterCharge/nNodesGas
+
+ALLSEL,ALL
+
+NSEL,S,LOC,Y,yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol/100,yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol-gasVol/100
+NSEL,R,LOC,X,-pitch/2+pitch*(midNum-1),pitch/2+pitch*(midNum-1)
+*GET,nNodesGas,NODE,0,COUNT
+F,ALL,CHRG,-clusterCharge/nNodesGas
+
+ALLSEL,ALL
+
+NSEL,S,LOC,Y,yheight+kaptonheight+xheight+kaptonheight,yheight+kaptonheight+xheight+kaptonheight+floatheight
+NSEL,R,LOC,X,-floatwidth/2+pitch*(midNum+1),floatwidth/2+pitch*(midNum+1)
+*GET,nNodesFloat,NODE,0,COUNT
+F,ALL,CHRG,clusterCharge/nNodesFloat
+!D,ALL,VOLT,0
+
+ALLSEL,ALL
+
+NSEL,S,LOC,Y,yheight+kaptonheight+xheight+kaptonheight,yheight+kaptonheight+xheight+kaptonheight+floatheight
+NSEL,R,LOC,X,-floatwidth/2+pitch*midNum,floatwidth/2+pitch*midNum
+*GET,nNodesFloat,NODE,0,COUNT
+F,ALL,CHRG,clusterCharge/nNodesFloat
+!D,ALL,VOLT,0
+
+ALLSEL,ALL
+
+NSEL,S,LOC,Y,yheight+kaptonheight+xheight+kaptonheight,yheight+kaptonheight+xheight+kaptonheight+floatheight
+NSEL,R,LOC,X,-floatwidth/2+pitch*(midNum-1),floatwidth/2+pitch*(midNum-1)
+*GET,nNodesFloat,NODE,0,COUNT
+F,ALL,CHRG,clusterCharge/nNodesFloat
+!D,ALL,VOLT,0
+
+ALLSEL,ALL
+
+NSEL,S,LOC,Y,yheight+kaptonheight,yheight+kaptonheight+xheight
+NSEL,R,LOC,X,-xwidth/2+pitch*midNum,xwidth/2+pitch*midNum
+*GET,nNodesX,NODE,0,COUNT
+!F,ALL,CHRG,clusterCharge/nNodesX
+!D,ALL,VOLT,0
+
+ALLSEL,ALL
+
+NSEL,S,LOC,Y,0,yheight
+*GET,nNodesY,NODE,0,COUNT
+!F,ALL,CHRG,-clusterCharge/nNodesY
+D,ALL,VOLT,0
+
+ALLSEL,ALL
+
+*DO,count,0,squareNum-1,1
+
+offset=count*pitch
+
+NSEL,S,LOC,Y,yheight+kaptonheight+xheight+kaptonheight,yheight+kaptonheight+xheight+kaptonheight+floatheight
+NSEL,R,LOC,X,-floatwidth/2+offset,floatwidth/2+offset
+*GET,nNodesFloat,NODE,0,COUNT
+!F,ALL,CHRG,clusterCharge/nNodesFloat
+!D,ALL,VOLT,floatVoltage
+
+ALLSEL,ALL
+
+*ENDDO
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!constraints END!!!!!!!!!!!!!!!!!!!!
+
+! Solve *********************
+/SOLU
+SOLVE   
+FINISH
+
+!Plot voltage
+/POST1 
+/EFACET,1  
+PLNSOL,VOLT,,0
+
+!specify range
+/CONTOUR,1,126,AUTO
+!/CONTOUR,1,27,0,,1 
+/REPLOT 
+
+!ETABLE,EFX,D,X                    ! STORE POTENTIAL FIELD GRADIENTS
+!ETABLE,EFY,D,Y
+
+ETABLE,EFX,EF,X                    ! STORE POTENTIAL FIELD GRADIENTS
+ETABLE,EFY,EF,Y
+
+PLVECT,EFX,EFY                     ! DISPLAY VECTOR ELECTRIC FIELD (VECTOR)
+

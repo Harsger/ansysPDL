@@ -1,0 +1,534 @@
+FINISH 
+/CLEAR,START
+
+/PREP7 
+! No polynomial elements
+/PMETH,OFF,1
+
+! Set electric preferences
+KEYW,PR_ELMAG,1
+KEYW,MAGELC,1
+
+!!!!!!!!!!!!!!!Defining variables all in m!!!!!!!!!!!!!!!!!!!
+
+!for geometry
+pitch=0.0005
+floatwidth=0.0003
+floatheight=0.000035
+!xwidth=0.00008
+xwidth=0.0003
+xheight=0.000035
+ywidth=0.0004
+yheight=0.000035
+kaptonheight=0.000025
+striplength=0.064
+gasVol=0.000150
+!gasVol=0.000125
+
+!for more unitcells
+squareNum=7
+midNum=3
+
+!for voltages
+floatVoltage=500
+!floatVoltage=0
+
+!for charges
+electron=-1.6022E-19 !in coulomb
+coulomb=-6.242E18 !in unit charge
+nElectrons=2.*1.8*1E6 !/2
+!nElectrons=1E6/2
+clusterCharge=nElectrons*electron
+!clusterCharge=nElectrons*coulomb
+!clusterCharge=0
+
+!!!!!!!!!!!!!!!Defining variables all in m END!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!geometry!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! generate keypoints for volumes
+
+cHeight=0			!bottom
+
+K,,pitch/2,pitch/2,cHeight 	!bur->1
+K,,-pitch/2,pitch/2,cHeight 	!bul->2
+K,,-pitch/2,-pitch/2,cHeight	!bll->3
+K,,pitch/2,-pitch/2,cHeight	!blr->4
+
+K,,pitch/2,ywidth/2,cHeight 	!bmur->5
+K,,-pitch/2,ywidth/2,cHeight 	!bmul->6
+K,,-pitch/2,-ywidth/2,cHeight	!bmll->7
+K,,pitch/2,-ywidth/2,cHeight	!bmlr->8
+
+cHeight=cHeight+yheight		!low
+
+K,,pitch/2,pitch/2,cHeight 	!lur->9
+K,,-pitch/2,pitch/2,cHeight 	!lul->10
+K,,-pitch/2,-pitch/2,cHeight	!lll->11
+K,,pitch/2,-pitch/2,cHeight	!llr->12
+
+K,,pitch/2,ywidth/2,cHeight 	!lmur->13
+K,,-pitch/2,ywidth/2,cHeight 	!lmul->14
+K,,-pitch/2,-ywidth/2,cHeight	!lmll->15
+K,,pitch/2,-ywidth/2,cHeight	!lmlr->16
+
+cHeight=cHeight+kaptonheight	!midlow
+
+K,,pitch/2,pitch/2,cHeight 	!mlur->17
+K,,-pitch/2,pitch/2,cHeight 	!mlul->18
+K,,-pitch/2,-pitch/2,cHeight	!mlll->19
+K,,pitch/2,-pitch/2,cHeight	!mllr->20
+
+K,,xwidth/2,pitch/2,cHeight 	!mlbmur->21
+K,,xwidth/2,-pitch/2,cHeight 	!mlmul->22
+K,,-xwidth/2,-pitch/2,cHeight	!mlmll->23
+K,,-xwidth/2,pitch/2,cHeight	!mlmlr->24
+
+cHeight=cHeight+xheight		!midhigh
+
+K,,pitch/2,pitch/2,cHeight 	!mhur->25
+K,,-pitch/2,pitch/2,cHeight 	!mhul->26
+K,,-pitch/2,-pitch/2,cHeight	!mhll->27
+K,,pitch/2,-pitch/2,cHeight	!mhlr->28
+
+K,,xwidth/2,pitch/2,cHeight 	!mhmur->29
+K,,xwidth/2,-pitch/2,cHeight 	!mhmul->30
+K,,-xwidth/2,-pitch/2,cHeight	!mhmll->31
+K,,-xwidth/2,pitch/2,cHeight	!mhmlr->32
+
+cHeight=cHeight+kaptonheight	!high
+
+K,,pitch/2,pitch/2,cHeight 	!hur->33
+K,,-pitch/2,pitch/2,cHeight 	!hul->34
+K,,-pitch/2,-pitch/2,cHeight	!hll->35
+K,,pitch/2,-pitch/2,cHeight	!hlr->36
+
+K,,floatwidth/2,pitch/2,cHeight 	!hmur->37
+K,,floatwidth/2,-pitch/2,cHeight 	!hmul->38
+K,,-floatwidth/2,-pitch/2,cHeight	!hmll->39
+K,,-floatwidth/2,pitch/2,cHeight	!hmlr->40
+
+cHeight=cHeight+floatheight	!top
+
+K,,pitch/2,pitch/2,cHeight 	!tur->41
+K,,-pitch/2,pitch/2,cHeight 	!tul->42
+K,,-pitch/2,-pitch/2,cHeight	!tll->43
+K,,pitch/2,-pitch/2,cHeight	!tlr->44
+
+K,,floatwidth/2,pitch/2,cHeight 	!tmur->45
+K,,floatwidth/2,-pitch/2,cHeight 	!tmul->46
+K,,-floatwidth/2,-pitch/2,cHeight	!tmll->47
+K,,-floatwidth/2,pitch/2,cHeight	!tmlr->48
+
+! gasVol *************
+
+cHeight=cHeight+gasVol	 	!gasTop->Mesh
+
+K,,pitch/2,pitch/2,cHeight 	!gur->49
+K,,-pitch/2,pitch/2,cHeight 	!gul->50
+K,,-pitch/2,-pitch/2,cHeight	!gll->51
+K,,pitch/2,-pitch/2,cHeight	!glr->52
+
+! generate volumes by keypoints
+
+V,5,6,7,8,13,14,15,16 		!ystrip -> volume1
+V,21,22,23,24,29,30,31,32 	!xstrip -> volume2
+V,37,38,39,40,45,46,47,48	!floatstrip -> volume3
+
+V,4,3,7,8,12,11,15,16		!bottom -y gas -> volume4
+V,1,2,6,5,9,10,14,13		!bottom +y gas -> volume5
+V,34,35,39,40,42,43,47,48	!top -x gas -> volume6
+V,36,33,37,38,44,41,45,46	!top +x gas -> volume7
+
+V,18,19,23,24,26,27,31,32	!mid -x kapton -> volume8
+V,17,20,22,21,25,28,30,29 	!mid +x kapton -> volume9
+V,9,10,11,12,17,18,19,20	!lower kapton -> volume10
+V,25,26,27,28,33,34,35,36	!higher kapton -> volume11
+
+V,41,42,43,44,49,50,51,52	!gas -> vol12
+
+!VADD,8,10 !-x add lower kapton -> volumehighest
+!VADD,9,11 !+x add higher kapton -> volume8
+!ALLSEL,ALL
+!*GET,highestVol,VOLU,0,NUM,MAX
+!VADD,8,highestVol
+
+!!!!!!!!!!!!!!!!!!!!geometry END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!generate pattern of unite cells and glue them!!!!!!!!!!!!!!!!!!
+
+!VGLUE,ALL
+
+VGEN,squareNum,ALL,,,pitch
+ALLSEL,ALL
+VGEN,squareNum,ALL,,,,pitch
+
+VGLUE,ALL
+
+!!!!!!!!!!!!!!!!!!!!!!generate pattern of unite cells and glue them END!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!materials!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!Define elementtype
+!ET,1,SOLID122
+ET,1,SOLID123
+
+!Define materialpropertys
+
+!Material 1 : copper
+!MP,PERX,1,10 
+MP,PERX,1,1E10 
+!MP,RSVX,1,17.21E-9 !wiki 0.0 
+!MP,RSVX,1,1E6 !wiki 0.0
+
+!Material 2 : kapton (FR4)
+MP,PERX,2,4.0 !3.4 quick-ohm.de
+!MP,RSVX,2,1E20 !goodfellow.com
+
+!Material 3 : gas (Neon CO4)
+MP,PERX,3,1.0 !−0.0000072 !wiki
+!MP,RSVX,3,1E20 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!materials END!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!associate volumes with elements and materials!!!!!!!!!!!!!!!!!!
+
+*DO,count,0,squareNum-1,1
+
+offset=count*pitch
+
+! strips ***************
+
+VSEL,S,LOC,Z,0,yheight
+VSEL,R,LOC,Y,-ywidth/2+offset,ywidth/2+offset
+VATT,1,,1
+/COLOR,VOLU,ORAN,ALL
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,yheight+kaptonheight,yheight+kaptonheight+xheight
+VSEL,R,LOC,X,-xwidth/2+offset,xwidth/2+offset
+VATT,1,,1
+/COLOR,VOLU,ORAN,ALL
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,yheight+kaptonheight+xheight+kaptonheight,yheight+kaptonheight+xheight+kaptonheight+floatheight
+VSEL,R,LOC,X,-floatwidth/2+offset,floatwidth/2+offset
+VATT,1,,1
+/COLOR,VOLU,ORAN,ALL
+
+ALLSEL,ALL
+
+! kapton **********
+
+VSEL,S,LOC,Z,yheight+kaptonheight,yheight+kaptonheight+xheight
+VSEL,R,LOC,X,-pitch/2+offset,-xwidth/2+offset
+VATT,2,,1
+/COLOR,VOLU,YELL,ALL
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,yheight+kaptonheight,yheight+kaptonheight+xheight
+VSEL,R,LOC,X,xwidth/2+offset,pitch/2+offset
+VATT,2,,1
+/COLOR,VOLU,YELL,ALL
+
+ALLSEL,ALL
+
+! gas *************
+
+VSEL,S,LOC,Z,0,yheight
+VSEL,R,LOC,Y,-pitch/2+offset,-ywidth/2+offset
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,0,yheight
+VSEL,R,LOC,Y,ywidth/2+offset,pitch/2+offset
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,yheight+kaptonheight+xheight+kaptonheight,yheight+kaptonheight+xheight+kaptonheight+floatheight
+VSEL,R,LOC,X,-pitch/2+offset,-floatwidth/2+offset
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,yheight+kaptonheight+xheight+kaptonheight,yheight+kaptonheight+xheight+kaptonheight+floatheight
+VSEL,R,LOC,X,floatwidth/2+offset,pitch/2+offset
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+ALLSEL,ALL
+
+*ENDDO
+
+! multiple volumes ********************
+
+! kapton ***********
+
+VSEL,S,LOC,Z,yheight,yheight+kaptonheight 
+VATT,2,,1
+/COLOR,VOLU,YELL,ALL
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,yheight+kaptonheight+xheight,yheight+kaptonheight+xheight+kaptonheight 
+VATT,2,,1
+/COLOR,VOLU,YELL,ALL
+
+ALLSEL,ALL
+
+! gas *********** 
+
+VSEL,S,LOC,Z,yheight+kaptonheight+xheight+kaptonheight+floatheight,yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+ALLSEL,ALL
+
+!!!!!!!!!!!!!!!!!!!!!!associate volumes with elements and materials END!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!meshing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+VPLOT     
+SMRT,2  
+!MSHAPE,0,3D 
+!MSHKEY,0 
+VMESH,ALL 
+FINISH  
+/SOL
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!meshing END!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!constraints!!!!!!!!!!!!!!!!!!!!!!!
+
+!define table for charge density --------------------------------------------
+
+!*DIM,ionChargeDensity,TABLE,2,,,Z
+!*TAXIS,ionChargeDensity,1, yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol/100, yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol !-gasVol/100
+
+!charges-------------------------------------------------------------
+
+NSEL,S,LOC,Z,yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol/100,yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol-gasVol/100 
+!NSEL,S,LOC,Z,yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol
+!NSEL,R,LOC,X,-floatwidth/2+pitch*midNum,floatwidth/2+pitch*midNum
+!NSEL,R,LOC,X,-xwidth/2+pitch*midNum,xwidth/2+pitch*midNum
+NSEL,R,LOC,X,-pitch/2+pitch*midNum,pitch/2+pitch*midNum
+NSEL,R,LOC,Y,-pitch/2+pitch*midNum,pitch/2+pitch*midNum
+!NSEL,R,LOC,X,-pitch/2+pitch*(midNum-1),pitch/2+pitch*(midNum+1)
+!NSEL,R,LOC,Y,-pitch/2+pitch*(midNum-1),pitch/2+pitch*(midNum+1)
+*GET,nNodesGas,NODE,0,COUNT
+!ionChargeDensity(1)=-2*clusterCharge/(pitch*floatwidth*gasVol*nNodesGas),0
+!ionChargeDensity(1)=-2*clusterCharge/(pitch*pitch*(gasVol-gasVol/100)*nNodesGas),0
+!F,ALL,CHRG,%ionChargeDensity%
+F,ALL,CHRG,-clusterCharge/nNodesGas
+
+ALLSEL,ALL
+
+NSEL,S,LOC,Z,yheight+kaptonheight+xheight+kaptonheight+floatheight 
+NSEL,R,LOC,X,-floatwidth/2+pitch*midNum,floatwidth/2+pitch*midNum
+!NSEL,R,LOC,X,-xwidth/2+pitch*midNum,xwidth/2+pitch*midNum
+NSEL,R,LOC,Y,-pitch/2+pitch*midNum,pitch/2+pitch*midNum
+!NSEL,R,LOC,Y,-pitch/2+pitch*(midNum-1),pitch/2+pitch*(midNum+1)
+!NSEL,R,LOC,Y,-ywidth/2+pitch*midNum,ywidth/2+pitch*midNum
+*GET,nNodesFloatM,NODE,0,COUNT
+F,ALL,CHRG,clusterCharge/nNodesFloatM
+
+ALLSEL,ALL
+
+NSEL,S,LOC,Z,yheight+kaptonheight+xheight+kaptonheight+floatheight 
+NSEL,R,LOC,X,-floatwidth/2+pitch*(midNum-1),floatwidth/2+pitch*(midNum-1)
+!NSEL,R,LOC,X,-xwidth/2+pitch*midNum,xwidth/2+pitch*midNum
+!NSEL,R,LOC,Y,-pitch/2+pitch*midNum,pitch/2+pitch*midNum
+NSEL,R,LOC,Y,-pitch/2+pitch*(midNum-1),pitch/2+pitch*(midNum+1)
+!NSEL,R,LOC,Y,-ywidth/2+pitch*midNum,ywidth/2+pitch*midNum
+*GET,nNodesFloatL,NODE,0,COUNT
+
+ALLSEL,ALL
+
+NSEL,S,LOC,Z,yheight+kaptonheight+xheight+kaptonheight+floatheight 
+NSEL,R,LOC,X,-floatwidth/2+pitch*(midNum+1),floatwidth/2+pitch*(midNum+1)
+!NSEL,R,LOC,X,-xwidth/2+pitch*midNum,xwidth/2+pitch*midNum
+!NSEL,R,LOC,Y,-pitch/2+pitch*midNum,pitch/2+pitch*midNum
+NSEL,R,LOC,Y,-pitch/2+pitch*(midNum-1),pitch/2+pitch*(midNum+1)
+!NSEL,R,LOC,Y,-ywidth/2+pitch*midNum,ywidth/2+pitch*midNum
+*GET,nNodesFloatH,NODE,0,COUNT
+
+ALLSEL,ALL
+
+nNodesFloatSum=nNodesFloatM+nNodesFloatL+nNodesFloatH
+
+NSEL,S,LOC,Z,yheight+kaptonheight+xheight+kaptonheight+floatheight 
+NSEL,R,LOC,X,-floatwidth/2+pitch*midNum,floatwidth/2+pitch*midNum
+!NSEL,R,LOC,X,-xwidth/2+pitch*midNum,xwidth/2+pitch*midNum
+!NSEL,R,LOC,Y,-pitch/2+pitch*midNum,pitch/2+pitch*midNum
+NSEL,R,LOC,Y,-pitch/2+pitch*(midNum-1),pitch/2+pitch*(midNum+1)
+!NSEL,R,LOC,Y,-ywidth/2+pitch*midNum,ywidth/2+pitch*midNum
+*GET,nNodesFloatM,NODE,0,COUNT
+!F,ALL,CHRG,clusterCharge/nNodesFloatSum
+
+ALLSEL,ALL
+
+NSEL,S,LOC,Z,yheight+kaptonheight+xheight+kaptonheight+floatheight 
+NSEL,R,LOC,X,-floatwidth/2+pitch*(midNum-1),floatwidth/2+pitch*(midNum-1)
+!NSEL,R,LOC,X,-xwidth/2+pitch*midNum,xwidth/2+pitch*midNum
+!NSEL,R,LOC,Y,-pitch/2+pitch*midNum,pitch/2+pitch*midNum
+NSEL,R,LOC,Y,-pitch/2+pitch*(midNum-1),pitch/2+pitch*(midNum+1)
+!NSEL,R,LOC,Y,-ywidth/2+pitch*midNum,ywidth/2+pitch*midNum
+*GET,nNodesFloatL,NODE,0,COUNT
+!F,ALL,CHRG,clusterCharge/nNodesFloatSum
+
+ALLSEL,ALL
+
+NSEL,S,LOC,Z,yheight+kaptonheight+xheight+kaptonheight+floatheight 
+NSEL,R,LOC,X,-floatwidth/2+pitch*(midNum+1),floatwidth/2+pitch*(midNum+1)
+!NSEL,R,LOC,X,-xwidth/2+pitch*midNum,xwidth/2+pitch*midNum
+!NSEL,R,LOC,Y,-pitch/2+pitch*midNum,pitch/2+pitch*midNum
+NSEL,R,LOC,Y,-pitch/2+pitch*(midNum-1),pitch/2+pitch*(midNum+1)
+!NSEL,R,LOC,Y,-ywidth/2+pitch*midNum,ywidth/2+pitch*midNum
+*GET,nNodesFloatH,NODE,0,COUNT
+!F,ALL,CHRG,clusterCharge/nNodesFloatSum
+
+ALLSEL,ALL
+
+!voltages--------------------------------------------------------------
+
+! set sides lines of y- , x- strips to zero volt **************
+
+*DO,count,0,squareNum-1,1
+
+offset=count*pitch
+
+VSEL,S,LOC,Z,0,yheight
+VSEL,R,LOC,Y,-ywidth/2+offset,ywidth/2+offset
+ASLV,S
+ASEL,R,LOC,X,-pitch/2
+!DA,ALL,VOLT,0
+LSLA,S
+!DL,ALL,,VOLT,0
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Z,yheight+kaptonheight,yheight+kaptonheight+xheight
+VSEL,R,LOC,X,-xwidth/2+offset,xwidth/2+offset
+ASLV,S
+ASEL,R,LOC,Y,-pitch/2
+!DA,ALL,VOLT,0
+LSLA,S
+!DL,ALL,,VOLT,0
+
+ALLSEL,ALL
+
+! set sides lines of floatstrip to floatVoltage ******************
+
+VSEL,S,LOC,Z,yheight+kaptonheight+xheight+kaptonheight,yheight+kaptonheight+xheight+kaptonheight+floatheight
+VSEL,R,LOC,X,-floatwidth/2+offset,floatwidth/2+offset
+ASLV,S
+ASEL,R,LOC,Y,-pitch/2
+!DA,ALL,VOLT,floatVoltage
+LSLA,S
+!DL,ALL,,VOLT,floatVoltage
+
+ALLSEL,ALL
+
+*ENDDO
+
+! set top area of gas volume to zero volt ******************
+
+ASEL,S,LOC,Z,yheight+kaptonheight+xheight+kaptonheight+floatheight+gasVol
+!DA,ALL,VOLT,0
+
+ALLSEL,ALL
+
+!!!!!!!!!!!!!!!!!!!constraints END!!!!!!!!!!!!!!!!!
+
+! Solve *********************
+/SOLU
+SOLVE   
+FINISH
+
+!Plot voltage
+/POST1 
+/EFACET,1  
+PLNSOL,VOLT,,0
+
+!specify range
+/CONTOUR,1,126,AUTO
+!/CONTOUR,1,27,0,,1 
+/REPLOT 
+
+!ETABLE,efx,D,X
+!ETABLE,efy,D,Y
+
+!PLVECT,D,efx,efy
+
+! Write the solution to files ******************
+
+ALLSEL,All
+
+fn='nodeVoltFlux'
+fn2='nodeVoltField'
+
+ending='txt'
+!directory='testDir/chargeDensity'
+directory='testDir/chargeDensity'
+
+*GET,nNodesTotal,NODE,0,COUNT
+
+!nNodesTotal=1
+
+*CFOPEN,%fn%,%ending%,%directory%
+*VWRITE,''
+(A1)
+*CFCLOSE
+
+*CFOPEN,%fn2%,%ending%,%directory%
+*VWRITE,''
+(A1)
+*CFCLOSE
+
+SSUM
+
+
+*DIM,cX,ARRAY,nNodesTotal
+*VGET,cX,NODE,1,LOC,X
+*DIM,cY,ARRAY,nNodesTotal
+*VGET,cY,NODE,1,LOC,Y
+*DIM,cZ,ARRAY,nNodesTotal
+*VGET,cZ,NODE,1,LOC,Z
+
+*DIM,cVolt,ARRAY,nNodesTotal
+*VGET,cVolt,NODE,1,VOLT
+
+*DIM,cFluxX,ARRAY,nNodesTotal
+*VGET,cFluxX,NODE,1,D,X
+*DIM,cFluxY,ARRAY,nNodesTotal
+*VGET,cFluxY,NODE,1,D,Y
+*DIM,cFluxZ,ARRAY,nNodesTotal
+*VGET,cFluxZ,NODE,1,D,Z
+
+*DIM,cFieldX,ARRAY,nNodesTotal
+*VGET,cFieldX,NODE,1,EF,X
+*DIM,cFieldY,ARRAY,nNodesTotal
+*VGET,cFieldY,NODE,1,EF,Y
+*DIM,cFieldZ,ARRAY,nNodesTotal
+*VGET,cFieldZ,NODE,1,EF,Z
+
+!/UIS,MSGPOP,4
+
+*CFOPEN,%fn%,%ending%,%directory%,APPEND
+*VWRITE,SEQU,' ',cX(1),' ',cY(1),' ',cZ(1),' ',cVolt(1),' ',cFluxX(1),' ',cFluxY(1),' ',cFluxZ(1)
+(F7.0,7(A1,E12.5))
+*CFCLOSE
+
+*CFOPEN,%fn2%,%ending%,%directory%,APPEND
+*VWRITE,SEQU,' ',cX(1),' ',cY(1),' ',cZ(1),' ',cVolt(1),' ',cFieldX(1),' ',cFieldY(1),' ',cFieldZ(1)
+(F7.0,7(A1,E12.5))
+*CFCLOSE
+

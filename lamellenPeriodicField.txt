@@ -1,0 +1,310 @@
+FINISH 
+/CLEAR,START
+
+/PREP7 
+! No polynomial elements
+/PMETH,OFF,1
+
+! Set electric preferences
+KEYW,PR_ELMAG,1
+KEYW,MAGELC,1
+
+Pi=2*acos(0)
+
+!!!!!!!!!!!!!!!Defining variables all in mm!!!!!!!!!!!!!!!!!!!
+
+! for geometry
+width=5
+gap=1.8
+thickness=0.1
+angle=45
+drift=4
+stripThick=0.1
+stripWidth=1
+stripDist=0.5
+nStrips=10
+isolator=1
+
+! for voltages
+volttop=75
+voltbot=-75
+voltdiff=-40
+
+voltanode=100
+
+!!!!!!!!!!!!!!!Defining variables all in mm END!!!!!!!!!!!!!!!!!!!
+
+slope=tan(angle*Pi/180)
+rotcos=cos(angle*Pi/180)
+rotsin=sin(angle*Pi/180)
+
+stripWcos=rotcos*stripWidth
+stripWsin=rotsin*stripWidth
+
+stripDcos=rotcos*stripDist
+stripDsin=rotsin*stripDist
+
+!!!!!!!!!!!!!!!!!!!!!!materials!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!Define elementtype
+ET,1,SOLID123
+ET,2,SOLID122
+
+!Define materialpropertys
+
+!Material 1 : copper
+MP,PERX,1,1E10 
+
+!Material 2 : kapton (FR4)
+MP,PERX,2,4.0 
+
+!Material 3 : gas (Neon CO4)
+MP,PERX,3,1.0  
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!materials END!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!geometry!!!!!!!!!!!!!!!!!!!!!!!!!
+
+K,,10,0,0
+K,,10+stripDsin,-stripDcos,0
+K,,10+stripWsin+stripDsin,-stripWcos-stripDcos,0
+K,,10+(stripWidth+stripDist)*nStrips*rotsin,-(stripWidth+stripDist)*nStrips*rotsin,0
+
+L,1,2
+L,2,3
+L,1,4
+
+
+WPLANE,,0,0,0,1,0,0,0,0,1
+
+! RECTNG,-isolator/2-stripThick-gap/2,-stripThick-gap/2,-width/2,width/2
+RECTNG,-stripThick-gap/2,gap/2+stripThick,-width/2,width/2
+! RECTNG,gap/2+stripThick,gap/2+stripThick+isolator/2,-width/2,width/2
+
+WPLANE,,0,0,0,1,0,0,0,1,0
+
+
+WPLANE,,stripDsin,-stripDcos,0,1+stripDsin,-stripDcos,0,stripDsin,-stripDcos,1
+
+! RECTNG,-isolator/2-stripThick-gap/2,-stripThick-gap/2,-width/2,width/2
+RECTNG,-stripThick-gap/2,-gap/2,-width/2,width/2
+RECTNG,-gap/2,gap/2,-width/2,width/2
+RECTNG,gap/2,gap/2+stripThick,-width/2,width/2
+! RECTNG,gap/2+stripThick,gap/2+stripThick+isolator/2,-width/2,width/2
+
+WPLANE,,0,0,0,1,0,0,0,1,0
+
+
+ASEL,S,LOC,Y,-stripDcos
+
+VDRAG,ALL,,,,,,2
+
+ALLSEL,ALL
+
+
+ASEL,S,LOC,Y,0
+
+VDRAG,ALL,,,,,,1
+
+ALLSEL,ALL
+
+
+WPLANE,,0,0,0,1,0,0,0,0,1
+
+RECTNG,-isolator/2-stripThick-gap/2,-stripThick-gap/2,-width/2,width/2
+RECTNG,gap/2+stripThick,gap/2+stripThick+isolator/2,-width/2,width/2
+
+WPLANE,,0,0,0,1,0,0,0,1,0
+
+ASEL,S,LOC,Y,0
+ASEL,U,LOC,X,-stripThick-gap/2,stripThick+gap/2
+
+VDRAG,ALL,,,,,,3
+
+ALLSEL,ALL
+
+LDELE,1,3,1,1
+
+WPLANE,,0,0,0,rotcos,rotsin,0,-rotsin,rotcos,0
+CSYS,WP
+
+VSEL,S,LOC,X,-gap/2*rotcos-stripThick,gap/2*rotcos+stripThick
+
+VGEN,nStrips,ALL,,,,-stripWidth-stripDist
+
+ALLSEL,ALL
+
+VGEN,1,ALL,,,,(stripWidth+stripDist)*nStrips/2,,,,1
+
+WPLANE,,0,0,0,1,0,0,0,1,0
+
+BLOCK,rotsin*(stripWidth+stripDist)*nStrips/2-isolator/2-stripThick-gap/2,rotsin*(stripWidth+stripDist)*nStrips/2+isolator/2+stripThick+gap/2,-rotcos*(stripWidth+stripDist)*nStrips/2,-rotcos*(stripWidth+stripDist)*nStrips/2-drift,-width/2,width/2
+
+!!!!!!!!!!!!!!!!!!!!geometry END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+ALLSEL,ALL
+VGLUE,ALL
+
+!!!!!!!!!!!!!!!!!!!!!!associate volumes with elements and materials!!!!!!!!!!!!!!!!!!
+
+WPLANE,,0,0,0,rotcos,rotsin,0,-rotsin,rotcos,0
+
+VSEL,S,LOC,X,-gap/2*rotcos-stripThick,-gap/2*rotcos
+VSEL,A,LOC,X,gap/2*rotcos,gap/2*rotcos+stripThick
+
+WPLANE,,0,0,0,1,0,0,0,1,0
+
+VSEL,U,LOC,Y,-rotcos*(stripWidth+stripDist)*nStrips/2,-rotcos*(stripWidth+stripDist)*nStrips/2-drift
+
+VATT,1,,1
+/COLOR,VOLU,ORAN,ALL
+
+ALLSEL,ALL
+
+WPLANE,,0,0,0,rotcos,rotsin,0,-rotsin,rotcos,0
+
+VSEL,S,LOC,X,-gap/2*rotcos-stripThick-isolator/2,-gap/2*rotcos-stripThick
+VSEL,A,LOC,X,gap/2*rotcos+stripThick,gap/2*rotcos+stripThick+isolator/2
+
+WPLANE,,0,0,0,1,0,0,0,1,0
+
+VSEL,U,LOC,Y,-rotcos*(stripWidth+stripDist)*nStrips/2,-rotcos*(stripWidth+stripDist)*nStrips/2-drift
+
+VATT,2,,1
+/COLOR,VOLU,YELL,ALL
+
+ALLSEL,ALL
+
+VSEL,U,MAT,,1
+VSEL,U,MAT,,2
+
+VATT,3,,1
+/COLOR,VOLU,GREE,ALL
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Y,-rotcos*(stripWidth+stripDist)*nStrips/2,-rotcos*(stripWidth+stripDist)*nStrips/2-drift
+ASLV
+ASEL,R,LOC,X,rotsin*(stripWidth+stripDist)*nStrips/2-gap/2-stripThick-isolator/2
+AATT,3,,2
+
+ALLSEL,ALL
+
+VSEL,S,LOC,Y,-rotcos*(stripWidth+stripDist)*nStrips/2,-rotcos*(stripWidth+stripDist)*nStrips/2-drift
+ASLV
+ASEL,R,LOC,X,rotsin*(stripWidth+stripDist)*nStrips/2+gap/2+stripThick+isolator/2
+AATT,3,,2
+
+ALLSEL,ALL
+
+!!!!!!!!!!!!!!!!!!!!!!associate volumes with elements and materials END!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!meshing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! VSEL,ALL
+! VSEL,U,MAT,,1
+! 
+! ! VPLOT     
+! SMRT,10 
+! !MSHAPE,0,3D 
+! !MSHKEY,0 
+! VMESH,ALL 
+! 
+! ! EMODIF,ALL,SECNUM,,1
+! 
+! FINISH  
+! /SOL
+! 
+! ! /SHOW,PNG
+! 
+! ! /ANGLE,,-60,XS
+! ! /ANGLE,,45,ZM,1
+! ! 
+! ! EPLOT
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!meshing END!!!!!!!!!!!!!!!!!!!!!!!
+! ! ! 
+! ! ! !!!!!!!!!!!!!!!!!!!constraints!!!!!!!!!!!!!!!!!!!!!!!
+! ! ! 
+! ! ! !voltages--------------------------------------------------------------
+! ! ! 
+! ! ! ! set nodes of strips to same voltages **************
+! ! ! 
+! ! ! *DO,count,0,rowsx-1,1
+! ! ! 
+! ! ! offset=-midx*pitch+count*pitch
+! ! ! 
+! ! ! VSEL,S,MAT,,1
+! ! ! VSEL,R,LOC,Z,floatlow,floathigh
+! ! ! VSEL,R,LOC,X,-floatwidth/2+offset,floatwidth/2+offset
+! ! ! ASLV
+! ! ! DA,ALL,VOLT,floatvolt
+! ! ! 
+! ! ! ALLSEL,ALL
+! ! ! 
+! ! ! VSEL,S,MAT,,1
+! ! ! VSEL,R,LOC,Z,xlow,xhigh
+! ! ! VSEL,R,LOC,X,-xwidth/2+offset,xwidth/2+offset
+! ! ! ASLV
+! ! ! DA,ALL,VOLT,xvolt
+! ! ! 
+! ! ! ALLSEL,ALL
+! ! ! 
+! ! ! *ENDDO
+! ! ! 
+! ! ! *DO,count,0,rowsy-1,1
+! ! ! 
+! ! ! offset=-midy*pitch+count*pitch
+! ! ! 
+! ! ! VSEL,S,MAT,,1
+! ! ! VSEL,R,LOC,Z,ylow,yhigh
+! ! ! VSEL,R,LOC,Y,-ywidth/2+offset,ywidth/2+offset
+! ! ! ASLV
+! ! ! DA,ALL,VOLT,yvolt
+! ! ! 
+! ! ! ALLSEL,ALL
+! ! ! 
+! ! ! *ENDDO
+! ! ! 
+! ! ! ! set top area of gas volume to zero volt ******************
+! ! ! 
+! ! ! ASEL,S,LOC,Z,meshheight,meshheight+5*wireRadius+wireDist
+! ! ! ASEL,U,LOC,Z,floathigh,meshheight
+! ! ! ASEL,U,LOC,Z,meshheight+2*wireWidth+wireDist,meshheight+2*wireWidth+wireDist+drift
+! ! ! ! ASEL,R,MAT,,1
+! ! ! DA,ALL,VOLT,meshvolt
+! ! ! 
+! ! ! ALLSEL,ALL
+! ! ! 
+! ! ! !!!!!!!!!!!!!!!!!!!constraints END!!!!!!!!!!!!!!!!!
+! ! ! 
+! ! ! ! Solve *********************
+! ! ! /SOLU
+! ! ! SOLVE   
+! ! ! FINISH
+! ! ! 
+! ! ! /POST1 
+! ! ! 
+! ! ! ! Plot voltage
+! ! ! ! /EFACET,1  
+! ! ! ! PLNSOL,VOLT,,0
+! ! ! 
+! ! ! ! default field and node output
+! ! ! 
+! ! ! /OUTPUT, PRNSOL, lis, weightingfields
+! ! ! PRNSOL
+! ! ! /OUTPUT
+! ! ! 
+! ! ! /OUTPUT, NLIST, lis, weightingfields
+! ! ! NLIST,,,,COORD
+! ! ! /OUTPUT
+! ! !  
+! ! ! /OUTPUT, ELIST, lis, weightingfields
+! ! ! ELIST
+! ! ! /OUTPUT
+! ! !  
+! ! ! /OUTPUT, MPLIST, lis, weightingfields
+! ! ! MPLIST
+! ! ! /OUTPUT
+
+!!!!!!!!!Ü***************************************************************************

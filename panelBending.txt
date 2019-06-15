@@ -1,0 +1,352 @@
+FINISH 
+/CLEAR,START
+
+/PREP7 
+! No polynomial elements
+/PMETH,OFF,1
+
+!!!!!!!!!Define variables in m!!!!!!!!!!!!!!!
+!for geometry
+
+!of trapezoid
+long=1.69
+short=1.19
+height=1.35
+diagonal=sqrt(height*height+(long-short)*(long-short)/4)
+midline=(long+short)/2
+
+!of diagonal beams
+upheight=0.457
+downheight=0.457
+beamheight=0.01
+beamwidth=0.05
+beamthicknes=0.0015
+
+!intercept theorem for diagonal beams
+upRatio=upheight/height
+downRatio=(height-downheight)/height
+
+!for layers
+fr4=0.0005
+honey=0.01
+glue=0.0001
+
+!for moments
+moment=0.1
+
+!Calculate the y-position of the centroid (with formula of wiki)
+ys=height/3*(long+2*short)/(long+short)
+yr=ys-height/2
+
+!intercept theorem for centroidline
+midRatio=1-ys/height
+!midRatio=0.5
+
+!!!!!!!!!Define varibales in m END!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!geometry!!!!!!!!!!!!!!!!
+!Generate corners of trapezoid
+K,,-long/2,-height/2,0 !ll -> 1
+K,,long/2,-height/2,0 !lr -> 2
+K,,short/2,height/2,0 !ur -> 3
+K,,-short/2,height/2,0 !ul -> 4
+
+!Generate lines for trapezoid
+L,1,2 !long -> 1
+L,2,3 !diagonal right -> 2
+L,3,4 !short -> 3
+L,4,1 !diagonal left -> 4
+
+!Generate keypoints on diagonal lines
+KL,2,1-downRatio !dr -> 5
+KL,2,1-upRatio !ur -> 6
+KL,4,upRatio !ul -> 7
+KL,4,downRatio !dl -> 8
+
+!Generate keypoints for centroid lines
+KL,1,0.5 !dm -> 9
+KL,3,0.5 !um -> 10
+KL,2,1-midRatio !rm -> 11
+KL,4,midRatio !lm -> 12
+
+!Delete lines
+
+!Generate lines for diagonal beams
+L,5,8 !lower diagonal -> 5
+L,6,7 !upper diagonal -> 6
+
+!Generate lines for centroid (midlines)
+L,9,10 !vertical -> 7
+L,11,12 !horizontal -> 8
+
+!Divide diagonal lines
+LSBL,4,5,,,KEEP !lower->9 , higher->10
+LSBL,10,6,,,KEEP !lower->11 , higher->4
+LSBL,2,5,,,KEEP !lower->10 , higher->12
+LSBL,12,6,,,KEEP !lower->13 , higher->2
+LSBL,11,8,,,KEEP !lower->14 , higher->12
+LSBL,13,8,,,KEEP !lower->11 , higher->15
+
+!Divide horizontal lines
+LSBL,3,7,,,KEEP !left->16 , right->13
+LSBL,6,7,,,KEEP !left->17 , right->3
+LSBL,8,7,,,KEEP !left->18 , right->6
+LSBL,5,7,,,KEEP !left->19 , right->8
+LSBL,1,7,,,KEEP !left->5 , right->20
+
+!Divide vertical midline
+LSBL,7,3,,,KEEP !lower->1 , higher->21
+LSBL,1,6,,,KEEP !lower->7 , higher->22
+LSBL,7,8,,,KEEP !lower->1 , higher->23
+  
+!/PNUM,LINE,1
+
+!Generate trapezoids
+AL,5,1,19,9 !bl area->1
+AL,20,10,8,1 !br area->2
+AL,19,23,18,14 !ll area->3
+AL,8,11,6,23 !lr area->4
+AL,18,22,17,12 !ul area->5
+AL,6,15,3,22 !ur area->6
+AL,17,21,16,4 !tl area->7
+AL,3,2,13,21 !tr area->8
+
+!/PNUM,AREA,1
+
+!Generate keypoint at the Centroid -> not get meshed
+!K,,0,yr,0
+
+!get 1/2 width of horizontal centroid line
+KSEL,,,,11
+KSUM
+*GET,centroidWidth,KP,0,CENT,X
+
+ALLSEL,ALL !Select all
+!!!!!!!!!!!!!!!!!!!geometry END!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!material properties!!!!!!!!!!!!!!!!
+
+!Define elementtype
+ET,1,SHELL281
+ET,2,BEAM189
+
+!Define materialpropertys
+
+!Material1 : aluminium
+MPTEMP,,,,,,,,  
+MPTEMP,1,0
+MPDATA,EX,1,,70E9
+MPDATA,PRXY,1,,0.34  
+MPDATA,DENS,1,,2700 
+
+!Material2 : honeycomb (6mm cellsize)
+MPTEMP,,,,,,,,  
+MPTEMP,1,0
+MPDATA,EX,2,,1  
+MPDATA,EY,2,,1   
+MPDATA,EZ,2,,1E9 
+MPDATA,PRXY,2,,0.5  
+MPDATA,PRYZ,2,,0
+MPDATA,PRXZ,2,,0
+MPDATA,GXY,2,,1  
+MPDATA,GYZ,2,,0.44E9  
+MPDATA,GXZ,2,,0.22E9
+MPDATA,DENS,2,,83 
+
+!Material3 : FR4
+MPTEMP,,,,,,,,  
+MPTEMP,1,0
+MPDATA,EX,3,,19E9   
+MPDATA,EY,3,,19E9   
+MPDATA,EZ,3,,9E9  
+MPDATA,PRXY,3,,0.11  
+MPDATA,PRYZ,3,,0.3
+MPDATA,PRXZ,3,,0.3
+MPDATA,GXY,3,,3.6E9  
+MPDATA,GYZ,3,,3.5E9  
+MPDATA,GXZ,3,,3.5E9 
+MPDATA,DENS,3,,1870
+
+!Material4 : honeycomb (9mm cellsize)
+MPTEMP,,,,,,,,  
+MPTEMP,1,0
+MPDATA,EX,4,,1  
+MPDATA,EY,4,,1   
+MPDATA,EZ,4,,0.63E9 
+MPDATA,PRXY,4,,0.5  
+MPDATA,PRYZ,4,,0
+MPDATA,PRXZ,4,,0
+MPDATA,GXY,4,,1  
+MPDATA,GYZ,4,,0.28E9  
+MPDATA,GXZ,4,,0.14E9
+MPDATA,DENS,4,,59 
+
+!Material5 : Araldite glue
+MPTEMP,,,,,,,,  
+MPTEMP,1,0
+MPDATA,EX,5,,1.904E9
+MPDATA,PRXY,5,,0.35  
+MPDATA,DENS,5,,1150
+
+!!!!!!!!!!!!!!!!!!!material properties END!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!layers of SHELL281!!!!!!!!!!!!!!!!!!!
+
+SECTYPE,1,SHELL
+SECDATA, fr4,3,0.0,3
+SECDATA, glue,5,0.0,1
+SECDATA, honey,4,0.0,9   
+SECDATA, glue,5,0.0,1
+SECDATA, fr4,3,0.0,3
+SECOFFSET,MID   
+!seccontrol,,,, , , ,
+
+ASEL,ALL !select all areas
+!ASEL,,AREA,,1,8,1 !select areas 1 to 8
+AATT,,,1 !associate element 1 attributes to selected areas
+
+!!!!!!!!!!!!!!!!!!!layers of SHELL281 END!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!form and size of BEAM189!!!!!!!!!!!!!!!
+
+SECTYPE,2,BEAM,HREC !,,5 
+!SECTYPE,2,BEAM,RECT !,,5   
+!SECOFFSET,CENT !default
+SECDATA,beamwidth,beamheight,beamthicknes,beamthicknes,beamthicknes,beamthicknes !,0,0,0,0,0,0
+!SECDATA,beamwidth,beamheight
+
+!LSEL,,LINE,,2,5,1 !select lines 2 to 5 
+!LSEL,A,LINE,,8,17,1 !select additional lines 8 to 17
+!LSEL,A,LINE,,19,20,1 !select additional lines 19 and 20
+LSEL,,LINE,,3,8,5 !select lines 3 and 8
+LSEL,A,LINE,,17,19,2 !select addititonal lines 17 and 19
+!LSEL,ALL !select all lines
+LATT,1,,2,,,,2 !associate material 1 and element 2 attributes to selcted lines 
+
+!!!!!!!!!!!!!!!!!!!form and size of BEAM189 END!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!meshing!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+APLOT     
+SMRT,1  
+MSHAPE,0,2D 
+MSHKEY,0 
+!AMESH,1,8,1
+AMESH,ALL 
+!AREFINE,1,8,1,1
+AREFINE,ALL,,,1
+LMESH,ALL
+FINISH 
+/SOL
+
+!!!!!!!!!!!!!!!!!!!meshing END!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!get number of nodes on lines ...
+
+!top (short line)
+LSEL,,,,13,16,3 !select lines 13 and 16
+NSLL,,1
+*GET,nNodesTopLine,NODE,0,COUNT !saves the number of nodes in : nNodesTopLine
+!nNodesTopLine=nNodesTopLine-2
+
+!bottom (long line)
+LSEL,,,,5,20,15 !select lines 5 and 20
+NSLL,,1
+*GET,nNodesBottomLine,NODE,0,COUNT !saves the number of nodes in : nNodesBottomLine
+!nNodesBottomLine=nNodesBottomLine-2
+
+!side (diagonal line)
+LSEL,,,,4,9,5 !select lines 4 and 9
+LSEL,A,,,12,14,2 !select lines 12 and 14
+NSLL,,1
+*GET,nNodesSideLine,NODE,0,COUNT !saves the number of nodes in : nNodesSideLine
+!nNodesSideLine=nNodesSideLine-2
+
+ALLSEL,ALL !Select all
+
+!!!!!!!!!!!!!!!!!!define constraints!!!!!!!!!!!!!!!!!!!!!! 
+
+!displacements
+
+!keypoint at the centroid
+!DK,16,ALL,0
+
+!node at centroid
+!D,10,ALL,0
+D,10,UX,0
+D,10,UY,0
+D,10,ROTZ,0
+
+!corner nodes
+!D,3,UZ,0,,13,10
+!D,6,UZ,0,,8,2
+
+!define moments ...
+
+!on top line
+momenttopline=moment*short*100/nNodesTopLine
+
+!on bottom line
+momentbottomline=moment*long*100/nNodesBottomLine
+
+!on side lines
+momentsideline=moment*height*100/nNodesSideLine
+momentsidelineortho=moment*(long-short)*100/nNodesSideLine/2
+
+!moments on lines tansferred to nodes via table
+
+! ... on top line
+LSEL,,LINE,,13,16,3 !select line 13 and 16 
+NSLL,S,1 !select all nodes attached to selected lines
+F,ALL,MX,-momenttopline
+D,ALL,UZ,0
+!*GET,nNodesHigh,NODE,0,COUNT
+
+ALLSEL,ALL
+
+! ... on bottom line 
+LSEL,,LINE,,5,20,15 !select lines 5 and 20
+NSLL,S,1 !select all nodes attached to selected lines
+F,ALL,MX,momentbottomline
+D,ALL,UZ,0
+!*GET,nNodesLow,NODE,0,COUNT
+
+ALLSEL,ALL
+
+! ... on right side line 
+LSEL,,LINE,,2,10,8 !select lines 2 and 10
+LSEL,A,LINE,,11,15,4 !select additional lines 11 and 15
+NSLL,S,0 !select all nodes attached to selected lines
+F,ALL,MY,momentsideline
+F,ALL,MX,-momentsidelineortho
+D,ALL,UZ,0
+!*GET,nNodesRight,NODE,0,COUNT
+
+ALLSEL,ALL
+
+! ... on left side line 
+LSEL,,LINE,,4,9,5 !select lines 4 and 9
+LSEL,A,LINE,,12,14,2 !select additional lines 12 and 14
+NSLL,S,0 !select all nodes attached to selected lines
+F,ALL,MY,-momentsideline
+F,ALL,MX,-momentsidelineortho
+D,ALL,UZ,0
+!*GET,nNodesLeft,NODE,0,COUNT
+
+ALLSEL,ALL
+
+!Gravity
+ACEL,,,9.81
+
+!!!!!!!!!!!!!!!!!!define constraints END!!!!!!!!!!!!!!!!!!!!!!
+
+!Solve
+/SOLU
+SOLVE   
+FINISH
+
+!Plot deformation
+/POST1 
+/EFACET,1     
+!PLNSOL, U,SUM 
+PLNSOL, U,Z

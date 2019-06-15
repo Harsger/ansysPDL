@@ -1,0 +1,162 @@
+FINISH 
+/CLEAR,START
+
+/PREP7 
+! No polynomial elements
+/PMETH,OFF,1
+
+! Set electric preferences
+KEYW,PR_ELMAG,1
+KEYW,MAGELC,1
+
+!!!!!!!!!!!!!!!Defining variables all in mm!!!!!!!!!!!!!!!!!!!
+
+! geometry
+
+pitch=0.5
+amplification=0.150
+kaptonheight=0.025
+
+floatwidth=0.15
+xwidth=0.15
+ywidth=0.4
+
+floatheight=.035
+xheight=.035
+yheight=.035
+
+wireWidth=0.025
+wirePitch=0.0625
+
+order=1                          ! 0=fxy , 1=fyx
+
+! number of unitcells
+rowsx=3                          ! only odd numbers
+rowsy=3                          ! only odd numbers
+
+!voltages
+meshvolt=0
+floatvolt=540
+xvolt=0
+yvolt=0
+
+!!!!!!!!!!!!!!!Defining variables all in mm END!!!!!!!!!!!!!!!!!!!
+
+midx=(rowsx-1)/2
+midy=(rowsy-1)/2
+
+*IF,order,EQ,0,THEN
+
+ylow=0
+yhigh=yheight
+
+xlow=kaptonheight+yheight
+xhigh=xlow+xheight
+
+*ELSE
+
+xlow=0
+xhigh=xheight
+
+ylow=kaptonheight+xhigh
+yhigh=ylow+yheight
+
+*ENDIF
+
+floatlow=xheight+kaptonheight+yheight+kaptonheight
+floathigh=floatlow+floatheight
+meshheight=floathigh+amplification
+
+wireRadius=wireWidth/2
+wireCell=wirePitch*2
+meshPerCrossing=pitch/wireCell
+meshCenter=(meshPerCrossing-1)/2
+
+*AFUN, DEG
+
+
+!!!!!!!!!!!!!!!!!!!!!!materials!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!Define elementtype
+!ET,1,SOLID122
+ET,1,SOLID123
+
+!Define materialpropertys
+MP,PERX,1,1E10 ! metal
+MP,PERX,2,4.0  ! FR4
+MP,PERX,3,1.0  ! gas 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!materials END!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!geometry!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! ********** mesh *******************
+
+xoffset=(pitch-wireCell)/2
+yoffset=pitch
+
+! torus
+
+! centerDistance=wirePitch-wireWidth
+centerDistance=wireWidth*0.25*((wirePitch/wireWidth)*(wirePitch/wireWidth)-3)
+
+alpha=ATAN(wirePitch/(2*centerDistance+wireWidth))
+
+WPLANE,,xoffset,yoffset,meshheight+wireRadius+centerDistance,xoffset+1,yoffset,meshheight+wireRadius+centerDistance,xoffset,yoffset+1,meshheight+wireRadius+centerDistance
+WPROTA,,90
+TORUS,0.,wireRadius,centerDistance+3*wireRadius,270-alpha,270+alpha
+WPLANE,,0,0,0,1,0,0,0,1,0
+
+! add second torus by rotating first
+
+WPLANE,,xoffset+wirePitch/2,yoffset,meshheight+wireWidth,xoffset+wirePitch/2+1,yoffset,meshheight+wireWidth,xoffset+wirePitch/2,yoffset+1,meshheight+wireWidth
+! WPROTA,,90
+! CSWPLA,11,CYLIN
+! VGEN,2,ALL,,,,180
+! CSYS,0
+! WPLANE,,0,0,0,1,0,0,0,1,0
+! CSWPLA,12,CART
+
+! rotate wire to create single window
+
+! xoffset=xoffset+wirePitch/2
+! yoffset=yoffset+wirePitch/2
+! 
+! WPLANE,,xoffset,yoffset,0,xoffset+1,yoffset,0,xoffset,yoffset+1,0
+! CSWPLA,11,CYLIN
+! VGEN,4,1,,,,90
+! CSYS,0
+! WPLANE,,0,0,0,1,0,0,0,1,0
+! CSWPLA,12,CART
+! 
+! ! asign material for distinction of gas and wires
+! 
+! ALLSEL,ALL
+! 
+! VATT,1,,1
+! /COLOR,VOLU,ORAN,ALL
+! 
+! ! gas in window
+! BLOCK,xoffset-wirePitch/2,xoffset+wirePitch/2,yoffset-wirePitch/2,yoffset+wirePitch/2,floathigh,meshheight+5*wireRadius
+! 
+! ! asign material for distinction of gas and wire
+! 
+! VSEL,S,LOC,Z,0,meshheight
+! *GET,gasindex,VOLU,,NUM,MAX
+! VATT,3,,1
+! /COLOR,VOLU,GREE,ALL
+! 
+! ! subtract wirevolume from gasvolume
+! 
+! ALLSEL,ALL
+! 
+! VOVLAP,ALL
+
+! BTOL,1e-15
+! VSEL,S,MAT,,1
+! VSBV,gasindex,ALL,,DELETE,KEEP
+! BTOL,DEFA
+
+! VSEL,S,LOC,Z,0,meshheight
+
+!!!!!!!!!!!!!!!!!!!!geometry END!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
